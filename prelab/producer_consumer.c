@@ -29,6 +29,9 @@ void *consumer_routine(void *arg);
 long g_num_prod; /* number of producer threads */
 //BUG 01: Need to initialize the Mutex thread to a default value
 pthread_mutex_t g_num_prod_lock = PTHREAD_MUTEX_INITIALIZER;
+//BUG 07: Global value for total character printed
+pthread_mutex_t g_num_count_lock = PTHREAD_MUTEX_INITIALIZER;
+long global_count = 0;
 
 
 /* Main - entry point */
@@ -81,9 +84,11 @@ int main(int argc, char **argv) {
     fprintf(stderr, "Failed to join consumer thread: %s\n", strerror(result));
     pthread_exit(NULL);
   }
-  //BUG 03: Removed unnecessary pointers in long to read correct return value
-  printf("\nPrinted %lu characters.\n", (long)thread_return);
+  //BUG 03: Fixed syntax error when reading value from thread_return variable  
+  printf("\nPrinted %lu characters by first consumer thread.\n", (long)thread_return);
+  printf("\nPrinted %lu characters.\n", global_count);
 
+  //BUG 06:free needs to be called only on NULL pointers or pointers that have been assigned value using malloc/calloc/realloc operator.
   free(thread_return);
 
   pthread_mutex_destroy(&queue.lock);
@@ -152,17 +157,18 @@ void *producer_routine(void *arg) {
 void *consumer_routine(void *arg) {
   queue_t *queue_p = arg;
   queue_node_t *prev_node_p = NULL;
-  long count = 0; /* number of nodes this thread printed */
+  //BUG 06: Chnaged to malloc based pointer to handle free call at program begining 
+  long *count = (long *)malloc(sizeof(long)); /* number of nodes this thread printed */
 
-  printf("Consumer thread started with thread id %lu\n", pthread_self());
+  printf("\nConsumer thread started with thread id %lu\n", pthread_self());
 
   /* terminate the loop only when there are no more items in the queue
    * AND the producer threads are all done */
-  //BUG 05: Lock on every iteration of the queue so that the values are distributed over the 2 threads.
+  //BUG 05: Lock on every iteration of the queue so that the values are read over both the threads properly.
   // pthread_mutex_lock(&queue_p->lock);
   pthread_mutex_lock(&g_num_prod_lock);
   while(queue_p->front != NULL || g_num_prod > 0) {
-    //BUG 05:
+    //BUG 05: Locks the system up so only one call inside. Since when reading queue_p->front is read only operation not having a mutex lock while reading should be alright.
     pthread_mutex_lock(&queue_p->lock);
     if (queue_p->front != NULL) {
 
@@ -181,7 +187,7 @@ void *consumer_routine(void *arg) {
       /* Print the character, and increment the character count */
       printf("%c", prev_node_p->c);
       free(prev_node_p);
-      ++count;
+      ++(*count);
     }
     else { /* Queue is empty, so let some other thread run */
       //BUG 05: Unlocked mutex only during exit
@@ -190,9 +196,12 @@ void *consumer_routine(void *arg) {
       sched_yield();
     }
   }
-  //BUG 05 Alternate approach:
   pthread_mutex_unlock(&g_num_prod_lock);
-  // pthread_mutex_unlock(&queue_p->lock);
+  pthread_mutex_unlock(&queue_p->lock);
 
-  return (void*) count;
+  //BUG 07: Changes to show total characters printed
+  pthread_mutex_lock(&g_num_count_lock);
+  global_count += (*count);
+  pthread_mutex_unlock(&g_num_count_lock);
+  return (void*) (*count);
 }
