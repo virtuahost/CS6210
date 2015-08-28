@@ -29,7 +29,7 @@ void *consumer_routine(void *arg);
 long g_num_prod; /* number of producer threads */
 //BUG 01: Need to initialize the Mutex thread to a default value
 pthread_mutex_t g_num_prod_lock = PTHREAD_MUTEX_INITIALIZER;
-//BUG 07: Global value for total character printed
+//BUG 0:6 Global value for total character printed
 pthread_mutex_t g_num_count_lock = PTHREAD_MUTEX_INITIALIZER;
 long global_count = 0;
 
@@ -84,11 +84,9 @@ int main(int argc, char **argv) {
     fprintf(stderr, "Failed to join consumer thread: %s\n", strerror(result));
     pthread_exit(NULL);
   }
-  //BUG 03: Fixed syntax error when reading value from thread_return variable  
-  printf("\nPrinted %lu characters by first consumer thread.\n", (long)thread_return);
+  printf("\nPrinted %lu characters by first consumer thread.\n", *(long*)thread_return);
   printf("\nPrinted %lu characters.\n", global_count);
 
-  //BUG 06:free needs to be called only on NULL pointers or pointers that have been assigned value using malloc/calloc/realloc operator.
   free(thread_return);
 
   pthread_mutex_destroy(&queue.lock);
@@ -157,7 +155,7 @@ void *producer_routine(void *arg) {
 void *consumer_routine(void *arg) {
   queue_t *queue_p = arg;
   queue_node_t *prev_node_p = NULL;
-  //BUG 06: Chnaged to malloc based pointer to handle free call at program begining 
+  //BUG 03: Chnaged to malloc based pointer to handle free call at program begining 
   long *count = (long *)malloc(sizeof(long)); /* number of nodes this thread printed */
 
   printf("\nConsumer thread started with thread id %lu\n", pthread_self());
@@ -199,9 +197,9 @@ void *consumer_routine(void *arg) {
   pthread_mutex_unlock(&g_num_prod_lock);
   pthread_mutex_unlock(&queue_p->lock);
 
-  //BUG 07: Changes to show total characters printed
+  //BUG 06: Changes to show total characters printed
   pthread_mutex_lock(&g_num_count_lock);
   global_count += (*count);
   pthread_mutex_unlock(&g_num_count_lock);
-  return (void*) (*count);
+  return (void*) count;
 }
