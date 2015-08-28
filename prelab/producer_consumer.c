@@ -29,7 +29,7 @@ void *consumer_routine(void *arg);
 long g_num_prod; /* number of producer threads */
 //BUG 01: Need to initialize the Mutex thread to a default value
 pthread_mutex_t g_num_prod_lock = PTHREAD_MUTEX_INITIALIZER;
-//BUG 0:6 Global value for total character printed
+//BUG 06: Global value for total character printed
 pthread_mutex_t g_num_count_lock = PTHREAD_MUTEX_INITIALIZER;
 long global_count = 0;
 
@@ -84,8 +84,8 @@ int main(int argc, char **argv) {
     fprintf(stderr, "Failed to join consumer thread: %s\n", strerror(result));
     pthread_exit(NULL);
   }
-  printf("\nPrinted %lu characters by first consumer thread.\n", *(long*)thread_return);
-  printf("\nPrinted %lu characters.\n", global_count);
+  printf("\nPrinted %lu characters.\n", *(long*)thread_return);
+  printf("\nPrinted %lu characters from global counter.\n", global_count);
 
   free(thread_return);
 
