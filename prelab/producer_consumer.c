@@ -143,7 +143,7 @@ void *producer_routine(void *arg) {
   }
 
   /* Decrement the number of producer threads running, then return */
-  //BUG 04: Use lock before modifying the global value
+  //BUG 03: Use lock before modifying the global value
   pthread_mutex_lock(&g_num_prod_lock);
   --g_num_prod; 
   pthread_mutex_unlock(&g_num_prod_lock);
@@ -155,19 +155,19 @@ void *producer_routine(void *arg) {
 void *consumer_routine(void *arg) {
   queue_t *queue_p = arg;
   queue_node_t *prev_node_p = NULL;
-  //BUG 03: Chnaged to malloc based pointer to handle free call at program begining 
+  //BUG 04: Chnaged to malloc based pointer to handle free call at program begining 
   long *count = (long *)malloc(sizeof(long)); /* number of nodes this thread printed */
 
   printf("\nConsumer thread started with thread id %lu\n", pthread_self());
 
   /* terminate the loop only when there are no more items in the queue
    * AND the producer threads are all done */
-  //BUG 05: Lock on every iteration of the queue so that the values are read over both the threads properly.
-  // pthread_mutex_lock(&queue_p->lock);
+
+  pthread_mutex_lock(&queue_p->lock);
   pthread_mutex_lock(&g_num_prod_lock);
   while(queue_p->front != NULL || g_num_prod > 0) {
-    //BUG 05: Locks the system up so only one call inside. Since when reading queue_p->front is read only operation not having a mutex lock while reading should be alright.
-    pthread_mutex_lock(&queue_p->lock);
+    //BUG 05: Unlocking num prod for freeing mutex
+    pthread_mutex_unlock(&g_num_prod_lock);
     if (queue_p->front != NULL) {
 
       /* Remove the prev item from the queue */
@@ -188,11 +188,12 @@ void *consumer_routine(void *arg) {
       ++(*count);
     }
     else { /* Queue is empty, so let some other thread run */
-      //BUG 05: Unlocked mutex only during exit
-      pthread_mutex_unlock(&g_num_prod_lock);
       pthread_mutex_unlock(&queue_p->lock);
       sched_yield();
     }
+    //BUG 05: Lock before reading from queue again
+    pthread_mutex_lock(&queue_p->lock);
+    pthread_mutex_lock(&g_num_prod_lock);
   }
   pthread_mutex_unlock(&g_num_prod_lock);
   pthread_mutex_unlock(&queue_p->lock);
@@ -201,5 +202,7 @@ void *consumer_routine(void *arg) {
   pthread_mutex_lock(&g_num_count_lock);
   global_count += (*count);
   pthread_mutex_unlock(&g_num_count_lock);
+  //Printing Data for individual threads
+  printf("\n Count: %lu \n", (*count));
   return (void*) count;
 }
