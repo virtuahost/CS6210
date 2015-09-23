@@ -12,6 +12,7 @@ static sigset_t vtalrm;
 
 void run_thread(void *(*entry_routine)(void *),void* args)
 {
+	// printf("run Thread \n");
 	void* ret_val = entry_routine(args);
 	if(main_program.t_id == running_thread->t_id)
 	{
@@ -28,7 +29,11 @@ int find_thread_id()
 	int i = 0;
 	for(i = 0; i < MAX_LIMIT; i++)
 	{
-		if(all_threads[i]->running == 0)
+		if(all_threads[i] != NULL && all_threads[i]->running == 0)
+		{
+			return i;
+		}
+		else if(all_threads[i] == NULL)
 		{
 			return i;
 		}
@@ -38,21 +43,28 @@ int find_thread_id()
 
 void schedule(int sig)
 {
+	// printf("Schedule Thread \n");
 	ucontext_t* curr;
 	sigprocmask(SIG_BLOCK,&vtalrm,NULL);
 	if(steque_isempty(&thread_queue))
 	{
+		// printf("Switching to Main. \n");
 		if(running_thread->running == 0)
 		{
 			curr = &running_thread->context;
 			running_thread = &main_program;
 			sigprocmask(SIG_UNBLOCK,&vtalrm,NULL);
+			count++;
 			swapcontext(curr,&main_program.context);
+		}
+		else
+		{
+			steque_enqueue(&thread_queue,running_thread);
 		}
 		sigprocmask(SIG_UNBLOCK,&vtalrm,NULL);
 		return;
 	}
-
+	// printf("Creating context");
 	gtthread_t* nxt_thrd = steque_pop(&thread_queue);
 	if(running_thread->running != 0)
 	{
@@ -69,11 +81,13 @@ void schedule(int sig)
 	}
 	running_thread = nxt_thrd;
 	sigprocmask(SIG_UNBLOCK,&vtalrm,NULL);
+	count++;
 	swapcontext(curr,&running_thread->context);
 }
 
 void gtthread_init(long period)
 {
+	// printf("Thread Started \n");
 	steque_init(&thread_queue);
 	sigemptyset(&vtalrm);
 	sigaddset(&vtalrm, SIGVTALRM);
@@ -81,16 +95,18 @@ void gtthread_init(long period)
 	struct sigaction handler;
 	memset(&handler, '\0',sizeof(handler));
 	handler.sa_handler = &schedule;
-
+	// printf("Thread Started \n");
 	if(sigaction(SIGVTALRM,&handler,NULL) < 0)
 	{
+		printf("Error!!! \n");
 		exit(1);
 	}
 	if(period > 0)
 	{
+		// printf("Setting timer \n");
 		struct itimerval *T = (struct itimerval*) malloc(sizeof(struct itimerval));
 	    T->it_value.tv_sec = T->it_interval.tv_sec = 0;
-	    T->it_value.tv_usec = T->it_interval.tv_usec = 1000;
+	    T->it_value.tv_usec = T->it_interval.tv_usec = period*1000;
 
         setitimer(ITIMER_VIRTUAL, T, NULL);
 	}
@@ -102,7 +118,8 @@ int gtthread_create(gtthread_t* thread,void* (*start_routine)(void *),void* arg)
 {
 	thread->running = 1;
 	thread->t_id = find_thread_id();
-
+	thread->j_t_id = -1;
+	printf("Thread created id: %i \n",thread->t_id);
 	if(thread->t_id >= MAX_LIMIT)
 	{
 		// printf('Max number of threads exceeded.');
@@ -114,18 +131,18 @@ int gtthread_create(gtthread_t* thread,void* (*start_routine)(void *),void* arg)
 		// printf("No context found.");
 		return -1;
 	}
-
+	// printf("Thread Create \n");
 	thread->context.uc_stack.ss_sp = (char*)malloc(SIGSTKSZ);
 	thread->context.uc_stack.ss_size = SIGSTKSZ;
 	thread->context.uc_link = &main_program.context;
 
+	// printf("Thread Context \n");
 	makecontext(&thread->context,run_thread,2,start_routine,arg);
 
 	all_threads[thread->t_id] = thread;
 	sigprocmask(SIG_BLOCK, &vtalrm, NULL);
 	steque_enqueue(&thread_queue, thread);
 	sigprocmask(SIG_UNBLOCK, &vtalrm, NULL);
-
 	return 0;
 }
 
@@ -135,9 +152,9 @@ int gtthread_join(gtthread_t thread,void **status)
 	{
 		return -1;
 	}		
-	if(running_thread->j_t_id != thread.t_id)
+	if(running_thread->j_t_id == thread.t_id)
 	{
-		// printf('Deadlock scenario');
+		printf("Deadlock scenario \n");
 		return -2;
 	}
 	thread.j_t_id = running_thread->t_id;

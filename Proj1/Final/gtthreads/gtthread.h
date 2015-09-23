@@ -29,6 +29,9 @@ gtthread_t main_program;
 
 gtthread_t* running_thread;
 
+int count;
+int flag;
+
 /* Must be called before any of the below functions. Failure to do so may
  * result in undefined behavior. 'period' is the scheduling quantum (interval)
  * in microseconds (i.e., 1/1000000 sec.). */
