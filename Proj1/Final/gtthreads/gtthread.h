@@ -5,7 +5,7 @@
 #include <ucontext.h>
 #include <signal.h>
 
-#define MAX_LIMIT 25
+#define MAX_LIMIT 1000
 
 //Define the data structure for GT thread One for mutex and one for the thread.
 typedef struct gtthread_data_t{
@@ -53,7 +53,7 @@ int  gtthread_join(gtthread_t thread, void **status);
 void gtthread_exit(void *retval);
 
 /* see man sched_yield(2) */
-void gtthread_yield(void);
+int gtthread_yield(void);
 
 /* see man pthread_equal(3) */
 int gtthread_equal(gtthread_t t1, gtthread_t t2);

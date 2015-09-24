@@ -14,6 +14,7 @@ int gtthread_mutex_init(gtthread_mutex_t* mutex)
 
 int gtthread_mutex_lock(gtthread_mutex_t* mutex)
 {
+	// printf("Checking Mutex \n");
 	if(mutex->locked == 0)
 	{
 		mutex->locked = 1;
@@ -33,7 +34,7 @@ int gtthread_mutex_lock(gtthread_mutex_t* mutex)
 		else
 		{
 			int* process_thread_id = (int*)steque_front(&mutex->q);
-			if(*process_thread_id != running_thread->t_id)
+			if(*process_thread_id == running_thread->t_id)
 			{
 				steque_pop(&mutex->q);
 				mutex->locked = 1;
@@ -54,6 +55,7 @@ int gtthread_mutex_lock(gtthread_mutex_t* mutex)
 
 int gtthread_mutex_unlock(gtthread_mutex_t* mutex)
 {
+	// printf("Unlocking \n");
 	mutex->locked = 0;
 	mutex->t_id = -1;
 	return 0;
