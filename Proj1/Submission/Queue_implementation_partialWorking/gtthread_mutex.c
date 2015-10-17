@@ -6,6 +6,7 @@
 
 int gtthread_mutex_init(gtthread_mutex_t* mutex)
 {
+	steque_init(&mutex->q);
 	mutex->locked = 0;
 	mutex->t_id = -1;
 	return 0;
@@ -17,9 +18,11 @@ int gtthread_mutex_lock(gtthread_mutex_t* mutex)
 	if(mutex->locked == 0)
 	{
 		mutex->locked = 1;
-		mutex->t_id = all_threads[running_thread]->t_id;
+		mutex->t_id = running_thread->t_id;
 		return 0;		
-	}	
+	}
+	//Queue up data for processing
+	steque_enqueue(&mutex->q,&running_thread->t_id);
 	//Loop till mutex is available
 	while(1)
 	{
@@ -30,9 +33,19 @@ int gtthread_mutex_lock(gtthread_mutex_t* mutex)
 		}
 		else
 		{
-			mutex->locked = 1;
-			mutex->t_id = all_threads[running_thread]->t_id;
-			return 0;
+			int* process_thread_id = (int*)steque_front(&mutex->q);
+			if(*process_thread_id == running_thread->t_id)
+			{
+				steque_pop(&mutex->q);
+				mutex->locked = 1;
+				mutex->t_id = running_thread->t_id;
+				return 0;
+			}
+			else
+			{
+				gtthread_yield();
+				continue;
+			}
 		}
 	}
 
@@ -43,11 +56,13 @@ int gtthread_mutex_lock(gtthread_mutex_t* mutex)
 int gtthread_mutex_unlock(gtthread_mutex_t* mutex)
 {
 	// printf("Unlocking \n");
-	if(mutex->t_id == all_threads[running_thread]->t_id)
-	{
-		mutex->locked = 0;
-		mutex->t_id = -1;
-	}
+	mutex->locked = 0;
+	mutex->t_id = -1;
 	return 0;
 }
 
+int gtthread_mutex_destroy(gtthread_mutex_t* mutex)
+{
+	steque_destroy(&mutex->q);
+	return 0;
+}

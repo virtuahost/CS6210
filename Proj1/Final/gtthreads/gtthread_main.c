@@ -1,78 +1,45 @@
+// Test9
+// Mutex and gtthread_yield. The program should print like below.
+//
+// thread 1
+// thread 1
+// thread 1
+// thread 2
+// thread 2
+// thread 2
+
 #include <stdio.h>
-#include <stdlib.h>
 #include "gtthread.h"
-long period = 0; //100;
-gtthread_t t[100];
-gtthread_mutex_t m[100];
-int hold[100];
-void *status = (void*)100;
-void *thrR(void *in)
+
+gtthread_mutex_t g_mutex;
+
+void* worker(void* arg)
 {
-    int ndx;
-    int th = (int)(long)in;
-    printf("thrR: enter\n"); fflush(stdout);
-    for(ndx=0; ndx<100; ++ndx) {
-        gtthread_mutex_lock(&m[0]);
-printf("thrR: lock %d\n",th); fflush(stdout);
-        usleep(100*1000);
-printf("thrR: unlock %d\n",th); fflush(stdout);
-        gtthread_mutex_unlock(&m[0]);
-    }
-    printf("thrR: exit\n"); fflush(stdout);
-    return in;
+	int i;
+
+	gtthread_mutex_lock(&g_mutex);
+	for(i=0; i < 3; i++)
+	{
+		printf("thread %ld\n", (long)arg);
+		gtthread_yield();
+		printf("Fail point");
+	}
+	gtthread_mutex_unlock(&g_mutex);
+	printf("Fail hahal");
 }
-void *thrX(void *in)
-{
-    int ndx;
-    int th = (int)(long)in;
-    int dur = (int)hold[th];
-    printf("thrX: enter\n"); fflush(stdout);
-    for(ndx=0; ndx<10; ++ndx) {
-        gtthread_mutex_lock(&m[0]);
-printf("thrX: lock %d\n",th); fflush(stdout);
-        gtthread_yield();
-        usleep(dur*1000);
-printf("thrX: unlock %d\n",th); fflush(stdout);
-        gtthread_mutex_unlock(&m[0]);
-        gtthread_yield();
-    }
-    printf("thrX: exit\n"); fflush(stdout);
-    gtthread_exit(in);
-    return in;
-}
+
 int main()
 {
-    int rc;
-    int rep;
-    int ndx;
-    printf("test mutex init, lock, unlock, destroy\n");
-    for( ndx=0; ndx<100; ++ndx ) {
-        hold[ndx] = 100+(ndx%10)*10;
-    }
-    printf("main: enter\n");
-    gtthread_init(period);
-    for( ndx=0; ndx<10; ++ndx ) {
-        rc = gtthread_mutex_init(&m[ndx]);
-        printf("init %d\n",ndx); fflush(stdout);
-        if(rc)printf("rc = %d\n",rc); fflush(stdout);
-    }
-    for( rep=0; rep<10; ++rep ) {
-      for( ndx=0; ndx<10; ++ndx ) {
-        rc = gtthread_mutex_lock(&m[ndx]);
-        printf("lock(%d)\n",ndx); fflush(stdout);
-        if(rc)printf("rc = %d\n",rc); fflush(stdout);
-        usleep(10*1000);
-        rc = gtthread_mutex_unlock(&m[ndx]);
-        printf("unlock(%d)\n",ndx); fflush(stdout);
-        if(rc)printf("rc = %d\n",rc); fflush(stdout);
-      }
-    }
-    for( ndx=0; ndx<10; ++ndx ) {
-        rc = gtthread_mutex_destroy(&m[ndx]);
-        printf("destroy(%d)\n",ndx,rc); fflush(stdout);
-        if(rc)printf("rc = %d\n",rc); fflush(stdout);
-    }
-    printf("main: exit\n");
-    fflush(stdout);
-    return EXIT_SUCCESS;
+	gtthread_t th1, th2;
+
+	gtthread_init(1000);
+
+	gtthread_mutex_init(&g_mutex);
+
+	gtthread_create(&th1, worker, (void*)1);
+	gtthread_create(&th2, worker, (void*)2);
+
+	gtthread_join(th1, NULL);
+	gtthread_join(th2, NULL);
+	return 0;
 }

@@ -21,18 +21,13 @@ void run_thread(void *(*entry_routine)(void *),void* args)
 
 void schedule(int sig)
 {
-	// if(flag==100){printf("Schedule Thread \n");flag=0;}
+	// printf("Schedule Thread \n");
 	ucontext_t* curr;
 	sigprocmask(SIG_BLOCK,&vtalrm,NULL);
 	int found = -1;
-	int start = (running_thread + 1 >= MAX_LIMIT)?0:(running_thread+1);
-	// printf("Start: %i %i \n", running_thread, found);
+	int start = (running_thread + 1 > MAX_LIMIT)?0:(running_thread+1);
 	while(found < 0)
 	{
-		// if(all_threads[start]!=NULL)
-		// {	
-		// 	printf("Thread %i status: %i \n", start, all_threads[start]->running);
-		// }
 		if(all_threads[start]!=NULL && all_threads[start]->running!=0)
 		{
 			found = start;
@@ -42,21 +37,14 @@ void schedule(int sig)
 		{
 			break;
 		}
-		start = (start + 1 >= MAX_LIMIT)?0:(start+1);
+		start = (start + 1 > MAX_LIMIT)?0:(start+1);
 	}
-	if(found < 0) 
-	{
-		sigprocmask(SIG_UNBLOCK,&vtalrm,NULL);
-		return;
-	}
+	if(found < 0) exit(0);
 	curr = &all_threads[running_thread]->context;
-	gtthread_t* nxt = all_threads[found];	
-	// printf("%i %i \n", running_thread, found);
+	gtthread_t* nxt = all_threads[found];
 	running_thread = found;
 	sigprocmask(SIG_UNBLOCK,&vtalrm,NULL);
-	// printf("Swapping");
 	swapcontext(curr,&nxt->context);
-	// printf("Failing \n");
 }
 
 void gtthread_init(long period)
@@ -153,8 +141,6 @@ int gtthread_join(gtthread_t thread,void **status)
 
 void gtthread_yield(void)
 {
-	// printf("Yield");
-	flag=100;
 	raise(SIGVTALRM);
 }
 

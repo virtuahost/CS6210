@@ -43,7 +43,7 @@ int gtthread_mutex_lock(gtthread_mutex_t* mutex)
 int gtthread_mutex_unlock(gtthread_mutex_t* mutex)
 {
 	// printf("Unlocking \n");
-	if(mutex->t_id == all_threads[running_thread]->t_id)
+	if(mutex->t_id != all_threads[running_thread]->t_id)
 	{
 		mutex->locked = 0;
 		mutex->t_id = -1;

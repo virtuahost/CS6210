@@ -17,13 +17,17 @@ typedef struct gtthread_data_t{
 }gtthread_t;
 
 typedef struct gtthread_mutex_data_t{
+	steque_t q;
 	int locked;
 	int t_id;
 }gtthread_mutex_t;
 
-gtthread_t* all_threads[MAX_LIMIT];
+steque_t thread_queue;
 
-int running_thread;
+gtthread_t* all_threads[MAX_LIMIT];
+gtthread_t main_program;
+
+gtthread_t* running_thread;
 
 int count;
 int flag;
@@ -49,7 +53,7 @@ int  gtthread_join(gtthread_t thread, void **status);
 void gtthread_exit(void *retval);
 
 /* see man sched_yield(2) */
-void gtthread_yield(void);
+int gtthread_yield(void);
 
 /* see man pthread_equal(3) */
 int gtthread_equal(gtthread_t t1, gtthread_t t2);
@@ -68,6 +72,8 @@ gtthread_t gtthread_self(void);
 int gtthread_mutex_init(gtthread_mutex_t *mutex);
 int gtthread_mutex_lock(gtthread_mutex_t *mutex);
 int gtthread_mutex_unlock(gtthread_mutex_t *mutex);
+int gtthread_mutex_destroy(gtthread_mutex_t* mutex);
+
 /* gtthread_mutex_destroy() and gtthread_mutex_trylock() do not need to be
  * implemented */
 
