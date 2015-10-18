@@ -33,7 +33,7 @@ int tbarrier_init(int num_processes)
   sense = 1;
   nodes = (struct treenode **)realloc(nodes, (num_processes) * sizeof(struct treenode *));
   nodeLen = num_processes;
-  colLen = (int)log2(num_processes)+1;
+  colLen = (int)ceil(log2(num_processes))+1;
   // printf("colLen: %i %i \n",colLen, num_processes);
   for(i = 0; i < num_processes;i++)
   {
