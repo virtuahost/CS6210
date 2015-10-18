@@ -159,22 +159,22 @@ int main(int argc, char** argv)
 
   MPI_Comm_size(MPI_COMM_WORLD, &num_processes);   
   MPI_Comm_rank(MPI_COMM_WORLD, &id);
-  for (i = 0; i < 500; i++) {
+  for (i = 0; i < 4; i++) {
+    start = MPI_Wtime();
     if(id == 0)
     {
-      printf("Started time for barrier %i is %f \n",i, start);
+      printf("Started time for barrier %i for node count %i is %f \n",i, num_processes, start);
     }
     ntbarrier_init(num_processes);
-    start = MPI_Wtime();
-    printf("Started process id: %i at time %f \n",id, start);
+    printf("Started process id: %i for node count %i for barrier %i \n",id, num_processes, i);
 
     ntbarrier_barrier(id);
 
     end = MPI_Wtime();
     if(id == 0)
     {
-      printf("Finished time for barrier %i is %f \n", i, end);
-      printf("Time taken by barrier: %i is %f \n",i,(end - start));
+      printf("Finished time for barrier %i for node count %i is %f \n", i, num_processes, end);
+      printf("Time taken by barrier: %i for node count %i is %f \n",i, num_processes,(end - start));
     }
   } 
   MPI_Barrier(MPI_COMM_WORLD); /* IMPORTANT */
@@ -195,8 +195,8 @@ int main(int argc, char** argv)
     printf("Total time = %f\n", maxEnd - minStart);
   }
 
-  MPI_Finalize(); 
   ntbarrier_finalize(); 
+  MPI_Finalize(); 
 
   return(0);
 }
