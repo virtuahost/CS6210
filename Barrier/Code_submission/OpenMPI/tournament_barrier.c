@@ -107,7 +107,7 @@ int tbarrier_barrier(int id)
       case loser:
           nodes[nodes[id][j].opponent[0]][nodes[id][j].opponent[1]].flag = sense;
           waitKey = sense;
-          printf("Loser: %i %i \n",nodes[id][j].opponent[0],id);
+          // printf("Loser: %i %i \n",nodes[id][j].opponent[0],id);
           MPI_Send(&waitKey, DUMMY_SIZE, MPI_INT, nodes[id][j].opponent[0], id, MPI_COMM_WORLD);
           waitKey = 0;
           while(waitKey != sense)
@@ -118,7 +118,7 @@ int tbarrier_barrier(int id)
           found = 1;
           break;
       case winner:
-          printf("Winner: %i \n",(id+temp));
+          // printf("Winner: %i \n",(id+temp));
           while(waitKey != sense)
           {
             MPI_Recv(&waitKey, DUMMY_SIZE, MPI_INT, (id+temp), (id+temp), MPI_COMM_WORLD, MPI_STATUS_IGNORE);   
@@ -197,18 +197,23 @@ int tbarrier_finalize()
 int main(int argc, char** argv)
 {
   int num_processes, id;
+  double start, end;
 
   MPI_Init(&argc, &argv);
 
   MPI_Comm_size(MPI_COMM_WORLD, &num_processes);  
+  // num_processes = atoi(argv[0]); 
   tbarrier_init(num_processes);
   MPI_Comm_rank(MPI_COMM_WORLD, &id);
 
-  printf("Started: %i \n",id);
+  start = MPI_Wtime();
+  printf("Started process id: %i at time %f \n",id, start);
 
   tbarrier_barrier(id);
 
-  printf("Finished %i \n",id);
+  end = MPI_Wtime();
+  printf("Finished process id: %i at time %f \n",id, end);
+  printf("Time taken by process id: %i is %f \n",id,(end - start));
 
   MPI_Finalize(); 
   tbarrier_finalize(); 

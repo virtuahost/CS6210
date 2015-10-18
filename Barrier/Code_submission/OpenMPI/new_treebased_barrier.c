@@ -107,9 +107,11 @@ int ntbarrier_barrier(int id)
       nodes[index]->child_not_ready[child] = 0;
       readyKey = 0;
       MPI_Send(&readyKey, DUMMY_SIZE, MPI_INT, index, id, MPI_COMM_WORLD);
+      index = (int)floor((nodes[id]->parent_pointer-1)/2);
       while(waitKey != sense)
       {  
-        // waitKey = nodes[id]->parent_sense;      
+        // waitKey = nodes[id]->parent_sense;  
+        // printf("Setting index: %i %i \n",index,id);    
         MPI_Recv(&waitKey, DUMMY_SIZE, MPI_INT, index, id , MPI_COMM_WORLD, MPI_STATUS_IGNORE);
       }      
       nodes[id]->parent_sense = waitKey; 
@@ -148,26 +150,22 @@ int main(int argc, char** argv)
 {
   int num_processes, id;
   int number;
+  double start, end;
 
   MPI_Init(&argc, &argv);
 
-  MPI_Comm_size(MPI_COMM_WORLD, &num_processes);  
+  MPI_Comm_size(MPI_COMM_WORLD, &num_processes);   
+  // num_processes = atoi(argv[0]); 
   ntbarrier_init(num_processes);
   MPI_Comm_rank(MPI_COMM_WORLD, &id);
-
-  printf("Started before Barrier 1: %i \n",id);
+  start = MPI_Wtime();
+  printf("Started process id: %i at time %f \n",id, start);
 
   ntbarrier_barrier(id);
 
-  // printf("Started before Barrier 2: %i \n",id);
-
-  // ntbarrier_barrier(id);
-
-  // printf("Started before Barrier 3: %i \n",id);
-
-  // ntbarrier_barrier(id);
-
-  // printf("Finished %i \n",id);
+  end = MPI_Wtime();
+  printf("Finished process id: %i at time %f \n",id, end);
+  printf("Time taken by process id: %i is %f \n",id,(end - start));
 
   MPI_Finalize(); 
   ntbarrier_finalize(); 
