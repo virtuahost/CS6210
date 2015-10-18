@@ -1,7 +1,9 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <mpi.h>
+#include <sys/time.h>
+#include "mpi.h"
+
 
 #define DUMMY_SIZE 1
 #define DUMMY_TAG 1
@@ -82,7 +84,7 @@ int ntbarrier_barrier(int id)
             MPI_Recv(&readyKey, DUMMY_SIZE, MPI_INT, (4*id+j+1), (4*id+j+1) , MPI_COMM_WORLD, MPI_STATUS_IGNORE);   
           }
           nodes[id]->child_not_ready[j] = readyKey;
-          // readyKey = 1;
+          readyKey = 1;
           if(nodes[id]->child_not_ready[j] == 0)
           {
             j++;            
@@ -148,24 +150,50 @@ int ntbarrier_finalize()
 
 int main(int argc, char** argv)
 {
-  int num_processes, id;
+  int num_processes, id, i;
   int number;
-  double start, end;
+  double start, end, minStart = 999999999999, maxEnd = 0;
+  double *allStart, *allEnd;
 
   MPI_Init(&argc, &argv);
 
   MPI_Comm_size(MPI_COMM_WORLD, &num_processes);   
-  // num_processes = atoi(argv[0]); 
-  ntbarrier_init(num_processes);
   MPI_Comm_rank(MPI_COMM_WORLD, &id);
-  start = MPI_Wtime();
-  printf("Started process id: %i at time %f \n",id, start);
+  for (i = 0; i < 500; i++) {
+    if(id == 0)
+    {
+      printf("Started time for barrier %i is %f \n",i, start);
+    }
+    ntbarrier_init(num_processes);
+    start = MPI_Wtime();
+    printf("Started process id: %i at time %f \n",id, start);
 
-  ntbarrier_barrier(id);
+    ntbarrier_barrier(id);
 
-  end = MPI_Wtime();
-  printf("Finished process id: %i at time %f \n",id, end);
-  printf("Time taken by process id: %i is %f \n",id,(end - start));
+    end = MPI_Wtime();
+    if(id == 0)
+    {
+      printf("Finished time for barrier %i is %f \n", i, end);
+      printf("Time taken by barrier: %i is %f \n",i,(end - start));
+    }
+  } 
+  MPI_Barrier(MPI_COMM_WORLD); /* IMPORTANT */
+
+  allStart = (double *)malloc(num_processes*sizeof(double));
+  allEnd = (double *)malloc(num_processes*sizeof(double));
+
+  MPI_Gather(&start, 1, MPI_DOUBLE, allStart, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+  MPI_Gather(&end, 1, MPI_DOUBLE, allEnd, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+
+  if(id == 0) {
+    for(i = 0; i < num_processes; i++) {
+      if (*(allStart + i) < minStart)
+        minStart = *(allStart + i);
+      if (*(allEnd + i) > maxEnd)
+        maxEnd = *(allEnd + i);      
+    }
+    printf("Total time = %f\n", maxEnd - minStart);
+  }
 
   MPI_Finalize(); 
   ntbarrier_finalize(); 
