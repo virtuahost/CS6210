@@ -1,0 +1,66 @@
+Started time for barrier 0 for node count 2 is 1445217745.763343
+Started process id: 0 for node count 2 for barrier 0
+Started process id: 1 for node count 2 for barrier 0
+Finished time for barrier 0 for node count 2 is 1445217745.799992
+Time taken by barrier: 0 for node count 2 is 0.036649
+Total time = 0.037108
+Started time for barrier 0 for node count 4 is 1445217757.506333
+Started process id: 0 for node count 4 for barrier 0
+Started process id: 2 for node count 4 for barrier 0
+Started process id: 1 for node count 4 for barrier 0
+Started process id: 3 for node count 4 for barrier 0
+Finished time for barrier 0 for node count 4 is 1445217757.549308
+Time taken by barrier: 0 for node count 4 is 0.042975
+Total time = 0.043499
+Started time for barrier 0 for node count 6 is 1445218219.609181
+Started process id: 0 for node count 6 for barrier 0
+Started process id: 2 for node count 6 for barrier 0
+Started process id: 1 for node count 6 for barrier 0
+Started process id: 3 for node count 6 for barrier 0
+Started process id: 5 for node count 6 for barrier 0
+Started process id: 4 for node count 6 for barrier 0
+Finished time for barrier 0 for node count 6 is 1445218219.648650
+Time taken by barrier: 0 for node count 6 is 0.039469
+Total time = 0.069174
+Started process id: 2 for node count 8 for barrier 0
+Started process id: 4 for node count 8 for barrier 0
+Started process id: 1 for node count 8 for barrier 0
+Started process id: 3 for node count 8 for barrier 0
+Started process id: 5 for node count 8 for barrier 0
+Started process id: 7 for node count 8 for barrier 0
+Started time for barrier 0 for node count 8 is 1445218219.828623
+Started process id: 0 for node count 8 for barrier 0
+Started process id: 6 for node count 8 for barrier 0
+Finished time for barrier 0 for node count 8 is 1445218219.860442
+Time taken by barrier: 0 for node count 8 is 0.031819
+Total time = 0.059035
+Started time for barrier 0 for node count 10 is 1445218275.047699
+Started process id: 0 for node count 10 for barrier 0
+Started process id: 2 for node count 10 for barrier 0
+Started process id: 6 for node count 10 for barrier 0
+Started process id: 8 for node count 10 for barrier 0
+Started process id: 4 for node count 10 for barrier 0
+Started process id: 1 for node count 10 for barrier 0
+Started process id: 3 for node count 10 for barrier 0
+Started process id: 7 for node count 10 for barrier 0
+Started process id: 9 for node count 10 for barrier 0
+Started process id: 5 for node count 10 for barrier 0
+Finished time for barrier 0 for node count 10 is 1445218275.085286
+Time taken by barrier: 0 for node count 10 is 0.037587
+Total time = 0.071703
+Started process id: 2 for node count 12 for barrier 0
+Started process id: 4 for node count 12 for barrier 0
+Started process id: 6 for node count 12 for barrier 0
+Started process id: 8 for node count 12 for barrier 0
+Started process id: 10 for node count 12 for barrier 0
+Started time for barrier 0 for node count 12 is 1445218275.184439
+Started process id: 0 for node count 12 for barrier 0
+Started process id: 1 for node count 12 for barrier 0
+Started process id: 3 for node count 12 for barrier 0
+Started process id: 5 for node count 12 for barrier 0
+Started process id: 7 for node count 12 for barrier 0
+Started process id: 9 for node count 12 for barrier 0
+Started process id: 11 for node count 12 for barrier 0
+Finished time for barrier 0 for node count 12 is 1445218275.228197
+Time taken by barrier: 0 for node count 12 is 0.043758
+Total time = 0.077432
