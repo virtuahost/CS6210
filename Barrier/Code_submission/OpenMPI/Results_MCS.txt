@@ -21,7 +21,7 @@ Started process id: 5 for node count 6 for barrier 0
 Started process id: 4 for node count 6 for barrier 0
 Finished time for barrier 0 for node count 6 is 1445218219.648650
 Time taken by barrier: 0 for node count 6 is 0.039469
-Total time = 0.069174
+Total time = 0.059174
 Started process id: 2 for node count 8 for barrier 0
 Started process id: 4 for node count 8 for barrier 0
 Started process id: 1 for node count 8 for barrier 0
