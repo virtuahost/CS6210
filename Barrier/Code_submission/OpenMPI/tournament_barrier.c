@@ -31,23 +31,17 @@ int tbarrier_init(int num_processes)
 {
   int i = 0, j =0;
   int p, t, e, p1;
-  sense = 1;
-  nodes = (struct treenode **)realloc(nodes, (num_processes) * sizeof(struct treenode *));
-  nodeLen = num_processes;
-  colLen = (int)ceil(log2(num_processes))+1;
-  // printf("colLen: %i %i \n",colLen, num_processes);
-  for(i = 0; i < num_processes;i++)
-  {
-    nodes[i] = (struct treenode *)malloc(colLen * sizeof(struct treenode));
-  }
+  // printf("colLen: %i %i \n",colLen, num_processes);  
   for(i = 0; i < nodeLen;i++)
   {
     for(j = 0; j < colLen;j++)
     {       
       p = (int)(pow(2,j));
       t = (int)(pow(2,(j-1)));
-      nodes[i][j].flag = 0;
+      nodes[i][j].flag = (sense == 0?1:0);
       nodes[i][j].role = 500;
+      nodes[i][j].opponent[0] = -1;
+      nodes[i][j].opponent[1] = -1;
       if(j > 0)
       { 
         if((i%p) == 0)
@@ -100,7 +94,7 @@ int tbarrier_init(int num_processes)
 int tbarrier_barrier(int id)
 {
   int i = 0, j =0;
-  int waitKey = 0;
+  int waitKey = (sense == 0?1:0);
   int found = 0;
   int temp = 0;
 
@@ -110,7 +104,7 @@ int tbarrier_barrier(int id)
   {
     // if(id == 8)
     //   printf("Role: %i \n",nodes[id][j].role);
-    waitKey = 0;
+    waitKey = (sense == 0?1:0);
     temp = (int)pow(2,(j-1));
     // printf("Temp: %i %i \n",temp, j);
     switch(nodes[id][j].role)
@@ -121,12 +115,12 @@ int tbarrier_barrier(int id)
           // if(id == 8)
           //   printf("Loser: %i %i \n",nodes[id][j].opponent[0],id);
           MPI_Send(&waitKey, DUMMY_SIZE, MPI_INT, nodes[id][j].opponent[0], id, MPI_COMM_WORLD);
-          waitKey = 0;
+          waitKey = (sense == 0?1:0);
           while(waitKey != sense)
           {
             MPI_Recv(&waitKey, DUMMY_SIZE, MPI_INT, (id-temp), (id-temp) , MPI_COMM_WORLD, MPI_STATUS_IGNORE);   
           }
-          waitKey = 0;
+          waitKey = (sense == 0?1:0);
           found = 1;
           break;
       case winner:
@@ -136,17 +130,18 @@ int tbarrier_barrier(int id)
           {
             MPI_Recv(&waitKey, DUMMY_SIZE, MPI_INT, (id+temp), (id+temp), MPI_COMM_WORLD, MPI_STATUS_IGNORE);   
           }
-          waitKey = 0;
+          waitKey = (sense == 0?1:0);
           break;
       case bye:
           break;
       case champion:
-          // printf("Champion: %i \n",(id+temp));
+          // printf("Champion: %i waitkey: %i sense %i \n",(id+temp),waitKey,sense);
           while(waitKey != sense)
           {
             MPI_Recv(&waitKey, DUMMY_SIZE, MPI_INT, (id+temp), (id+temp) , MPI_COMM_WORLD, MPI_STATUS_IGNORE);   
           }
-          waitKey = 0;
+          // printf("Champion completed: %i waitkey: %i sense %i \n",(id+temp),waitKey,sense);
+          waitKey = (sense == 0?1:0);
           nodes[nodes[id][j].opponent[0]][nodes[id][j].opponent[1]].flag = sense;
           waitKey = sense;
           MPI_Send(&waitKey, DUMMY_SIZE, MPI_INT, nodes[id][j].opponent[0], id, MPI_COMM_WORLD);
@@ -219,8 +214,16 @@ int main(int argc, char** argv)
   MPI_Init(&argc, &argv);
 
   MPI_Comm_size(MPI_COMM_WORLD, &num_processes);  
-  MPI_Comm_rank(MPI_COMM_WORLD, &id);
-  for (i = 0; i < 4; i++) {
+  MPI_Comm_rank(MPI_COMM_WORLD, &id);  
+  nodes = (struct treenode **)realloc(nodes, (num_processes) * sizeof(struct treenode *));
+  nodeLen = num_processes;
+  sense = 1;
+  colLen = (int)ceil(log2(num_processes))+1;
+  for(i = 0; i < num_processes;i++)
+  {
+    nodes[i] = (struct treenode *)malloc(colLen * sizeof(struct treenode));
+  }
+  for (i = 0; i < 1; i++) {
     start = MPI_Wtime();
     if(id == 0)
     {

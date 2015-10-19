@@ -26,12 +26,10 @@ int ntbarrier_init(int num_processes)
 {
   int i = 0, j =0;
   sense = 1;
-  nodes = (struct treenode **)realloc(nodes, (num_processes) * sizeof(struct treenode *));
-  nodeLen = num_processes;
   for(i = 0; i < nodeLen;i++)
   {
-    nodes[i] = (struct treenode *)malloc(sizeof(struct treenode));
     nodes[i]->parent_sense = 0;
+    nodes[i]->parent_pointer = -1;
     while(j<4)
     {
       if((4*i+j+1)<nodeLen)
@@ -159,7 +157,14 @@ int main(int argc, char** argv)
 
   MPI_Comm_size(MPI_COMM_WORLD, &num_processes);   
   MPI_Comm_rank(MPI_COMM_WORLD, &id);
-  for (i = 0; i < 4; i++) {
+
+  nodes = (struct treenode **)realloc(nodes, (num_processes) * sizeof(struct treenode *));
+  nodeLen = num_processes;
+  for(i = 0; i < nodeLen;i++)
+  {
+    nodes[i] = (struct treenode *)malloc(sizeof(struct treenode));
+  }
+  for (i = 0; i < 1; i++) {
     start = MPI_Wtime();
     if(id == 0)
     {
