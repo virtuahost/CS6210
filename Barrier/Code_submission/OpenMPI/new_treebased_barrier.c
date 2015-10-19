@@ -182,8 +182,7 @@ int main(int argc, char** argv)
       printf("Time taken by barrier: %i for node count %i is %f \n",i, num_processes,(end - start));
     }
   } 
-  MPI_Barrier(MPI_COMM_WORLD); /* IMPORTANT */
-
+  
   allStart = (double *)malloc(num_processes*sizeof(double));
   allEnd = (double *)malloc(num_processes*sizeof(double));
 
