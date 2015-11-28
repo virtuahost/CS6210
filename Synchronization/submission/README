@@ -1,0 +1,41 @@
+******************************************************************************************************************************************************
+******************************************************************************************************************************************************
+
+	This is a REAMDE file for Project 3 - CS 6210 - Fall 2015 - Aniket Patwardhan & Deep Ghosh
+
+******************************************************************************************************************************************************
+******************************************************************************************************************************************************
+
+	*** Please copy the given commands as-is in the appropriate directory through the terminal ***
+
+
+	Instructions to build and compile the project:
+
+
+	- For Server Code:
+	
+	g++ -std=c++11 -DHAVE_INTTYPES_H -DHAVE_NETINET_IN_H -Wall -I/usr/local/include/thrift servertest.cpp url_processing.cpp url_processing.h gen-cpp/URLproxy.h gen-cpp//URLproxy.cpp gen-cpp/server_types.h gen-cpp/server_types.cpp gen-cpp/server_constants.h gen-cpp/server_constants.cpp  -L/usr/local/lib -lthrift -lcurl -o server
+
+	- For Client Code:
+
+	g++ -std=c++11 -DHAVE_INTTYPES_H -DHAVE_NETINET_IN_H -Wall -I/usr/local/include/thrift cache_test.cpp gen-cpp/URLproxy.h gen-cpp/server_constants.cpp gen-cpp/server_constants.h gen-cpp/server_types.h gen-cpp/server_types.cpp  gen-cpp/URLproxy.cpp -L/usr/local/lib -lthrift -lcurl -o client
+
+	------------------------------------------------------------------------------------------------------------------------------------------------------
+
+	Instructions to Execute the code:
+
+
+	- For Server Code:
+
+	./server <option> <cache_size>
+		- Option: 1 = Random Eviction; 2 = LRU Eviction; 3 = LSF Eviction
+		- Cache Size: Specify the total size for the cache e.g. 1024
+
+	- For Client Code:
+
+	./client <workload>
+		- Workload: 1 = Random; 2 = Repetitive; 3 = Pattern
+
+		
+******************************************************************************************************************************************************
+******************************************************************************************************************************************************
