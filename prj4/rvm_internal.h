@@ -7,13 +7,6 @@
 
 using namespace std;
 
-//Structure to handle all recoverable memory data
-typedef struct _rvm_t
-{
-	string directory; //Contains the directory to be used for writing logs.
-	map<const char *, void *> segments; //Stores name of every segment to be written.
-	list<void *> inTrans; //To track segments in transaction.
-} rvm_t;
 
 //Structure to handle segment information for list in rvm_t
 typedef struct _rvm_segment
@@ -21,6 +14,14 @@ typedef struct _rvm_segment
 	void * data;
 	int size;
 } rvm_seg;
+
+//Structure to handle all recoverable memory data
+typedef struct _rvm_t
+{
+	const char* directory; //Contains the directory to be used for writing logs.
+	map<const char *, rvm_seg *> segments; //Stores name of every segment to be written.
+	list<void *> inTrans; //To track segments in transaction.
+} rvm_t;
 
 //Structure to handle changes in logs
 typedef struct _rvm_logdata
@@ -35,7 +36,7 @@ typedef struct _rvm_logdata
 typedef struct _trans_t
 {
 	rvm_t *trans_context;	//rvm pointer for the transaction.
-	map<void *, list<rvm_logdata>> log_data_list; //List of log for segments.
+	map<void *, list<rvm_logdata> > log_data_list; //List of log for segments.
 } trans_t;
 
 #endif
